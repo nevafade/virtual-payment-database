@@ -1,0 +1,580 @@
+create table VPMSuser(user_id varchar(20) primary key, fname char(20),lname 
+char(20),city char(20), street char(20), postal_code int not null,contact varchar(20) unique,password varchar(20));
+
+Insert into VPMSuser values (‘U101’,’Rachel’,’Mendes’,’Pune’,’lavale’,9934040040’,’pass’);
+
+create table wallet(wallet_id varchar(20) primary key, w_amount int, user_id varchar(20), foreign key(user_id) references VPMSuser (user_id));
+
+Insert into wallet values ( ‘W101’, ‘110’, ‘U101’)
+
+create table bank(bank_id varchar(20) primary key, bank_name char(20));
+Insert into bank values(‘B01’, “State Bank Of India”);
+Insert into bank values(“B02”, “Bank of Maharashtra”);
+Insert into bank values(“B03”, “Dena Bank”);
+Insert into bank values(“B04”, “RBI”);
+Insert into bank values(“B05”, “UCO Bank”);
+Create table account(accountno varchar(20) unique,account_id  varchar(10), bank_id varchar(20),foreign key(bank_id) references bank(bank_id));
+
+Insert into account values (‘76254418’,’B01’,’ACC101’);
+
+Create table vpmssession(session_id varchar(20) unique,user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table incomebank(income_id varchar(20) unique,bank_id varchar(20),foreign key(bank_id) references bank(bank_id),DT datetime,amount int);
+
+Create table incomerelbank(income_id varchar(20),foreign key(income_id) references incomebank(income_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table incomeuser(income_id varchar(20) unique,user_id varchar(20),foreign key(user_id) references VPMSuser(user_id),DT datetime,amount int);
+
+Create table incomereluser(income_id varchar(20),foreign key(income_id) references incomebank(income_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table expuser(exp_id varchar(20) unique,user_id varchar(20),foreign key(user_id) references VPMSuser(user_id),dt datetime,amount int);
+
+Create table expreluser(exp_id varchar(20),foreign key(exp_id) references expuser(exp_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table expservice(exp_id varchar(20),service_id varchar(20),DT datetime,amount int);
+
+Create table exprelservice(exp_id varchar(20),foreign key(exp_id) references expuser(exp_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table expbank(exp_id varchar(20) primary key,bank_name varchar(20),dt datetime,amount int);
+
+Create table exprelbank(exp_id varchar(20),foreign key (exp_id) references expbank(exp_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table bill(user_id varchar(20),foreign key(user_id) references VPMSuser(user_id),service_id varchar(20));
+
+//1
+Drop table rechargepre;\g
+create table rechargepre(ser_id varchar(20) primary key, mobile_no varchar(20), recharge_amt int,status int);
+
+
+//2
+Drop table rechargepost;\g
+create table rechargepost(ser_id varchar(20) primary key, mobile_no varchar(20), recharge_amt int,status int);\g
+
+
+
+
+
+//3
+Drop table electricity;\g
+create table electricity(ser_id varchar(20) primary key, electricity_amount int, electricity_units int, ele_final_date date,status int);\g
+
+
+//4
+Drop table tv;\g
+create table tv(ser_id varchar(20) primary key, amount int,status int);\g
+
+
+//5
+Drop table water;\g
+create table water(ser_id varchar(20) primary key, water_amount int, water_consumed int, water_rate int,status int);\g
+
+
+//6
+Drop table landline;\g
+create table landline(ser_id varchar(20) primary key, landline_amount int, minutes int, landline_rate int, landline_final_date date,status int);\g
+
+Create table history(ser int(30)auto_increment primary key,DT datetime,user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table company(comp_id varchar(20) primary key, comp_name varchar(30) not null);
+
+Create table product(prod_id varchar(20) primary key, prod_name varchar(20) not null, price int not null, quantity int not null, comp_id varchar(20), foreign key(comp_id) references company(comp_id));
+
+Create table cart(cart_id varchar(20) primary key,user_id varchar(20),foreign key(user_id) references VPMSuser(user_id),paystatus int);
+
+Create table cartitems(prod_id varchar(20),foreign key(prod_id) references product(prod_id),cart_id varchar(20),foreign key(cart_id) references cart(cart_id));
+
+Create table expcart(exp_id varchar(20) primary key,cart_id varchar(20),foreign key(cart_id) references cart(cart_id),dt datetime,amount int);
+
+Create table exprelcart(exp_id varchar(20),foreign key (exp_id) references expcart(exp_id),user_id varchar(20),foreign key(user_id) references VPMSuser(user_id));
+
+Create table sermap(ser_id varchar(20),table_id int);
+
+ALL TABLES CREATED!!!!!
+
+drop procedure if exists `signup`\g
+
+Delimiter **
+create PROCEDURE signup (in fname text,in lname text,in city text,in street text,in pincode int, in contact text,in password text)
+Begin
+Declare a varchar(20);
+Declare b varchar(20);
+Declare c varchar(20);
+Declare d varchar(20);
+set d="U0";
+Select count(*) into a from VPMSuser;
+set b =d+a;
+Insert into VPMSuser values ( b , fname , lname, city, street , pincode, contact , password);
+set d="W0";
+set c =d+a;
+Insert into wallet values ( c , 0, b);
+end **
+
+
+call signup ("Rachel","Mendes","Pune","lavale", 136118,“9964040030”,"pass")\g
+call signup ("Aayush","Kahensa","Pune","lavale", 136118,”9934010040”,"pass")\g
+Call signup(“Suchismita”, “Banerjee”, “Pune”, “Lavale”, “136118”, “9764947095”, “pass”)\g 
+
+
+drop procedure if exists `login`\g
+
+Delimiter ##
+CREATE PROCEDURE login(in conact text,in pasword text) 
+Begin
+Declare ap text;
+Declare au text;
+Select  password into ap from VPMSuser where contact=conact;
+If ap=pasword
+Then
+Select user_Id into au from VPMSuser where contact=conact;
+Insert into vpmssession values (“ses01”,au);
+End if;
+ 
+END ## 
+
+
+drop procedure if exists `addmoney`\g
+Delimiter ##
+CREATE PROCEDURE addmoney(in bname text,in acc text,in money int)
+Begin
+Declare ap varchar(20);
+Declare ai varchar(20);
+Declare uid varchar(20);
+Declare incid varchar(20);
+Declare a text;
+Declare n int;
+Declare nn datetime;
+Select  bank_id into ap from bank where bank_name=bname;
+Select count(*) into a from account;
+Set ai=a;
+
+
+Select user_Id into uid from vpmssession where session_id=’SES01’;
+
+Select count(*) into a from incomebank;
+
+Set incid=a;
+Set nn=now();
+Insert into incomebank values ( incid , ap, nn, money);
+
+Insert into incomerelbank values ( incid, uid);
+
+Select w_amount into n from wallet where user_id=uid;
+
+Set n=n+money;
+
+Update wallet set w_amount=n where user_id=uid;
+
+Insert into history (DT,user_id) values (nn,uid);
+ 
+END ##
+
+Call addmoney(“RBI”,”2346354”,300);
+
+Delimiter ##
+CREATE PROCEDURE sendmoney(in cont text,in money int)
+Begin
+Declare ap varchar(20);
+Declare ai varchar(20);
+Declare uid varchar(20); 
+Declare incid varchar(20); 
+Declare a varchar(20);
+Declare w int;
+Declare d varchar(20);
+Declare hrs varchar(20); 
+Declare m varchar(20);
+Declare nn datetime;
+
+
+Select user_Id into uid from vpmssession where session_id=’SES01’;
+Select w_amount into w from wallet where user_id=uid;
+If w>money
+Then
+Set w=w-money;
+Update wallet set w_amount=w where user_id=uid;
+
+Select  user_id into ap from VPMSuser where contact=cont;
+Select w_amount into w from wallet where user_id=ap;
+Set w=w+money;
+Update wallet set w_amount=w where user_id=ap;
+Set nn=now();
+
+Select count(*) into a from incomeuser;
+
+Set Incid=a;
+Insert into incomeuser values(Incid ,uid ,nn ,money);
+Insert into incomereluser values (Incid ,ap );
+
+Select count(*) into a from expuser;
+Set Incid=a;
+Insert into expuser values (incid ,ap ,nn ,money );
+Insert into expreluser values(incid ,uid);
+
+Insert into history(DT,user_id) values (nn ,uid);
+Insert into history(DT,user_id) values (nn ,ap);
+End if;
+
+ 
+END ##
+
+Call sendmoney(“9764947095”, 100);\g
+
+
+drop procedure if exists `moneyBack`\g
+Delimiter ##
+CREATE PROCEDURE moneyBack(in bname text,in money int)
+Begin
+Declare a varchar(20);
+Declare uid text;
+Declare eid text;
+Declare w int;
+Declare nn datetime;
+
+
+Select count(*) into a from bank where
+bank_name=bname ;
+
+If a=1
+Then
+Set nn=now();
+Select user_id into uid from vpmssession where session_id=’SES01’;
+Select w_amount into w from wallet where user_id=uid;
+Set w=w-money;
+Update wallet set w_amount=w where user_id=uid;
+Select count(*) into a from expbank;
+Set Eid=a;
+Insert into expbank values(eid ,bname ,nn,money);
+Insert into exprelbank values(eid ,uid);
+Insert into history(DT,user_id) values(nn ,uid);
+
+End if;
+End ##
+
+Call moneyBack(“RBI”,50);\g
+
+Call rechargeprepaid(“9764947095”, “9988776655”,150);\g
+Call rechargeprepaid(“9964040030”, “8877665544”,200);\g
+drop procedure if exists `rechargeprepaid`\g
+Delimiter ##
+Create procedure rechargeprepaid(in co text,in cont text,in amt int)
+Begin
+Declare a varchar(20); 
+Declare rid varchar(20);
+Declare uid text;
+
+Select count(*) into a from rechargepre;
+Set rid=a;
+Insert into rechargepre values(rid ,cont ,amt , 0);
+Select user_id into uid from VPMSuser where contact=co;
+Insert into bill values(uid,rid);
+Insert into sermap values(rid ,1);
+
+End ##
+
+Drop function countser;\g
+Delimiter ##
+Create function countser()
+Returns int
+Begin
+Declare a int;
+Declare c int;
+Set c=0;
+Select count(*) into a from rechargepre;
+Set c=c+a;
+Select count(*) into a from rechargepost;
+Set c=c+a;
+Select count(*) into a from electricity;
+Set c=c+a;
+Return c;
+End ##
+
+
+drop procedure if exists `rechargeprepost`\g
+Delimiter ##
+Create procedure rechargeprepost(in cont text,in amt int)
+Begin
+Declare a varchar(20);
+Declare rid varchar(20);
+Declare uid varchar(20);
+
+
+Set rid=countser();
+Insert into rechargepost values (rid ,cont ,amt ,0);
+Select user_id into uid from VPMSuser where contact=cont;
+Insert into bill values(uid,rid);
+Insert into sermap values(rid ,2);
+End ##
+
+Call rechargeprepost(“9764947095”,200);
+Call rechargeprepost(“9964040030”,300);
+
+Call electricity(“9934010040”,900,300,DATE_ADD(curdate(), INTERVAL 1 MONTH)
+);\g
+Call electricity(“9764947095”,800,200,DATE_ADD(curdate(), INTERVAL 1 MONTH)
+);\g
+
+drop procedure if exists `electricity`\g 
+Delimiter ##
+Create procedure electricity(in cont text,in amt int,in units int,in final date)
+Begin
+Declare a varchar(20);
+Declare rid varchar(20);
+Declare uid text;
+
+Set Rid=countser();
+Insert into electricity values(rid ,amt ,units,final, 0);
+Select user_id into uid from VPMSuser where contact=cont;
+Insert into bill values(uid,rid);
+Insert into sermap values(rid ,3);
+
+End ##
+-------------------------------------
+Call tv(“9545754028”, 600);\g
+drop procedure if exists `tv`\g
+Delimiter ##
+Create procedure tv(in cont text,in amt int)
+Begin
+Declare a varchar(20);
+Declare rid varchar(20);
+Declare uid text;
+Select count(*) into a from tv;
+Set Rid=a;
+Insert into tv values(rid ,amt,0);
+Select user_id into uid from VPMSuser where contact=cont;
+Insert into bill values(rid,uid);
+Insert into sermap values(rid ,3);
+
+End ##
+
+drop procedure if exists `water`\g
+Delimiter ##
+Create procedure water(in cont text,in amt int,in amtconsumed int,in rate int)
+Begin
+Declare a varchar(20);
+Declare rid varchar(20);
+Declare uid text;
+Select count(*) into a from water;
+Set Rid=a;
+Insert into water values(rid ,amt ,amtconsumed,rate,0);
+Select user_id into uid from VPMSuser where contact=cont;
+Insert into bill values(rid,uid);
+Insert into sermap values(rid ,3);
+
+End ##
+
+drop procedure if exists `landline`\g         DROPPED!! 
+Delimiter ##
+Create procedure landline(in cont text,in amt int,in minutes int,in rate int,in final date)
+Begin
+Declare a varchar(20);
+Declare rid varchar(20);
+Declare uid text;
+Select count(*) into a from landline;
+Set Rid=a;
+Insert into landline values(rid ,amt ,minutes,rate,final,0);
+Select user_id into uid from VPMSuser where contact=cont;
+Insert into bill values(rid,uid);
+Insert into sermap values(rid ,3);
+
+End ##
+----------------------------------------------------------
+Call expbill(“5”);
+
+
+drop procedure if exists `expBill`\g
+Delimiter ##
+Create procedure expbill(in serid text)
+Begin
+
+Declare a varchar(20);
+Declare w int;
+Declare wp int;
+Declare t int;
+Declare uid text;
+Declare nn datetime;
+Select table_id into t from sermap where ser_id=serid;
+If t=1
+Then
+Select recharge_amt into wp from rechargepre where ser_id=serid;
+Update rechargepre set status=1 where ser_id=serid;
+Elseif t=2
+Then 
+Select recharge_amt into wp from rechargepost where ser_id=serid;
+Update rechargepost set status=1 where ser_id=serid;
+Elseif t=3
+then
+Select electricity_amount into wp from electricity where ser_id=serid;
+Update electricity set status=1 where ser_id=serid;
+End if;
+
+Set nn=now();
+Select user_id into uid from vpmssession where session_id=“SES01”;
+Select w_amount into w from wallet where user_id=uid;
+If w>=wp
+Then
+Set w=w-wp;
+Update wallet set w_amount=w where user_id=uid;
+Select count(*) into a from expservice;
+Insert into expservice values (a,serid, nn, wp);
+Insert into exprelservice values (a,uid);
+Insert into history(DT,user_id) values (nn ,uid);
+End if;
+End##
+
+drop procedure if exists `showBill`\g 
+Delimiter ##
+Create procedure showBill()
+Begin
+Declare uid text;
+Select user_id into uid from vpmssession where session_id=’SES01’;
+Select * from rechargepre where ser_id in (select service_id from bill where user_id=uid);
+Select * from rechargepost where ser_id in (select service_id from bill where user_id=uid);
+Select * from electricity where ser_id in (select service_id from bill where user_id=uid);
+End ##
+
+drop procedure if exists `addCompany`\g 
+Delimiter ##
+Create Procedure addCompany(in cname text )
+Begin
+Declare a varchar(20);
+Select count(*) into a from company;
+Insert into company values(a,cname);
+End ##
+
+Call addCompany(”MiVi”);\g
+Call addCompany(“hp”);\g
+Call addCompany(“Collezione”);\g
+Call addCompany(“Nike”);\g
+Call addCompany(“Vans”);\g
+
+drop procedure if exists `addProduct`\g 
+Delimiter ##
+Create Procedure addProduct(in pname text, in price int, in qty int, in cname text)
+Begin
+Declare a varchar(20);
+Declare cid varchar(20);
+Select count(*) into a from product;
+Select comp_id into cid from company where comp_name=cname; 
+Insert into product values(a,pname,price,qty,cid);
+End ##
+
+Call addProduct(“iPhone charger”,649,20,”MiVi”);\g
+Call addProduct(“Laptop Bag”,1299,25,”hp”);\g
+Call addProduct(“Womens wallet”,799,30,”Collezione”);\g
+Call addProduct(“Ultra thin USB mouse”,1000,25,”MiVi”);\g
+Call addProduct(“16-inch screen guard”,499,50,”hp”);\g
+Call addProduct(“AUX cable”,299,35,”MiVi”);\g
+Call addProduct(“Ladies sneaker socks”,349,50,”Collezione”);\g
+Call addProduct(“Beige sneakers”,1799,25,”Vans”);\g
+Call addProduct(“Black jeans”,1499,45,”Collezione”);\g
+Call addProduct(“Black backpack”,1500,25,”Vans”);\g
+Call addProduct(“Printed T-shirt”,699,40,”Collezione”);\g
+Call addProduct(“Nike air”,3199,10,”Nike”);\g
+Call addProduct(“Black basic”,299,35,”Collezione”);\g
+Call addProduct(“Water bottle”,500,50,”Nike”);\g
+Call addProduct(“Dri-fit t-shirt”,1699,30,”Nike”);\g
+
+drop procedure if exists `shop`\g 
+Delimiter ##
+Create Procedure shop()
+Begin
+Declare a int;
+Declare b varchar(20);
+Declare c varchar(20);
+Select count(*) into a from cart where user_id in (select user_id from vpmssession) and paystatus=0;
+If a=0
+Then
+Select count(*) into b from cart;
+Select user_id into c from vpmssession where session_id=”SES01”;
+Insert into cart values (b,c,0);
+End if;
+
+End ##
+
+drop procedure if exists `showProducts`\g 
+Delimiter ##
+Create procedure showProducts()
+Begin
+Select * from Product;
+End ##
+
+drop procedure if exists `showCompanyProducts`\g 
+Delimiter ##
+Create procedure showCompanyProducts(in co text)
+Begin
+Select * from Product where company_id=co;
+End ##
+
+Delimiter ##
+Create procedure addtocart(in pid text)
+Begin
+Declare cid varchar(20);
+Declare q int;
+Select quantity into q from product where prod_id=pid;
+If q>0
+then
+Select cart_id into cid from cart where user_id in (select user_id from vpmssession) and paystatus=0;
+Insert into cartitems values(pid,cid);
+End if;
+End ##
+
+drop procedure if exists `paycart`\g 
+Delimiter ##
+Create procedure paycart()
+Begin
+Declare cid varchar(20);
+Declare uid varchar(20);
+Declare q int;
+Declare p int;
+Declare w int;
+Declare a varchar(20);
+Declare nn datetime;
+Set nn=now();
+
+Select cart_id into cid from cart where user_id in (select user_id from vpmssession) and paystatus=0;
+Select sum(p.price) into p from cart c,cartitems ci,product p where c.cart_id=ci.cart_id and ci.prod_id=p.prod_id and c.cart_id=cid;
+Select w_amount into w from wallet where user_id in (select user_id from vpmssession);
+
+If w>=p
+Then
+
+Set w=w-p;
+Update wallet set w_amount=w where user_id in (select user_id from vpmssession);
+select user_id into uid from vpmssession;
+Select count(*) into a from expcart;
+Insert into expcart values (a,cid,nn,p);
+Insert into exprelcart values (a, uid);
+Insert into history(dt,user_id) values (nn,uid);
+Update cart set paystatus=1 where cart_id=cid;
+End if;
+
+End ##
+
+
+Drop procedure `getHistory`;\g
+Delimiter ##
+Create procedure getHistory()
+Begin
+Select * from history where ser in(Select h.ser from history h,incomeuser iu,incomebank ib,expuser eu,expbank eb,expservice es,expcart ec  where h.dt=iu.dt or h.dt=ib.dt or h.dt=eu.dt or h.dt=eb.dt or h.dt=es.dt or h.dt=ec.dt and h.user_id in (select user_id from vpmssession));
+End ##
+
+Select h.ser from history h,incomeuser iu,incomebank ib,expuser eu,expbank eb,expservice es,expcart ec  where h.dt=iu.dt or h.dt=ib.dt and h.user_id in (select user_id from vpmssession);
+
+Delimiter ##
+Create procedure logout()
+Begin
+Truncate table vpmssession;
+End ##
+
+
+
+
+
+
+
+
+
+
+
+
+
+
